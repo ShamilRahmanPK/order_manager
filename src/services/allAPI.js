@@ -21,3 +21,6 @@ export const getUserOrderAPI = async (userId, reqHeader) => {
     return await commonAPI("GET", `${SERVER_BASE_URL}/orders/${userId}`, null, reqHeader);
 };
 
+export const updateOrderAPI = async (orderId, reqBody, reqHeader) => {
+    return await commonAPI("PUT", `${SERVER_BASE_URL}/orders/${orderId}`, reqBody, reqHeader);
+};

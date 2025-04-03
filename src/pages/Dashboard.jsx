@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Table, Container, Row, Col } from "react-bootstrap";
-import { addOrderAPI, getUserOrderAPI } from "../services/allAPI";
+import { addOrderAPI, getUserOrderAPI, updateOrderAPI } from "../services/allAPI";
 import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
+  console.log(orders);
+  
   const [show, setShow] = useState(false);
   const [editShow, setEditShow] = useState(false);
   const [orderData, setOrderData] = useState({ items: [{ name: "", quantity: 1 }], totalPrice: "", status: "Pending" });
@@ -58,10 +60,43 @@ function Dashboard() {
     if (token && user?._id) {
       try {
         const result = await getUserOrderAPI(user._id, { Authorization: `Bearer ${token}` });
+
         if (result.status === 200) setOrders(result.data);
       } catch (err) { console.log(err); }
     }
   };
+
+
+  const updateOrder = async () => {
+    const token = sessionStorage.getItem("token");
+    const reqHeader = { Authorization: `Bearer ${token}` };
+    const reqBody = { ...orderData }; 
+
+    try {
+        if (!orderData._id) {
+            alert("Order ID is missing.");
+            return;
+        }
+
+        const result = await updateOrderAPI(orderData._id, reqBody, reqHeader); 
+
+        if (result.status === 200) {
+            alert("Order updated successfully!");
+            setOrders(orders.map(order => (order._id === orderData._id ? { ...order, ...reqBody } : order)));
+            setEditShow(false);
+        } else {
+            alert("Failed to update order.");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("An error occurred while updating the order.");
+    }
+  };
+
+
+
+
+
 
   return (
     <Container className="p-4 bg-white shadow rounded w-100 h-100">
@@ -114,7 +149,12 @@ function Dashboard() {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShow(false)}>Close</Button>
-          <Button variant="primary" onClick={saveOrder}>{isEditing ? "Save Changes" : "Save Order"}</Button>
+          {
+            isEditing ? <Button variant="primary" onClick={updateOrder}>Save Changes</Button>
+            :
+            <Button variant="primary" onClick={saveOrder}>Save Order</Button>
+          }
+          {/* <Button variant="primary" onClick={saveOrder}>{isEditing ? "Save Changes" : "Save Order"}</Button> */}
         </Modal.Footer>
       </Modal>
     </Container>
